@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="h-full">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>چت‌بات دانش سازمانی</title>
+    <meta name="description" content="پرسش و پاسخ از مستندات داخلی سازمان با RAG" />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css"
+    />
+    <link rel="stylesheet" href="/css/tailwind.css" />
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body class="h-full">
+    <div class="app-shell">
+      <header class="app-header">
+        <button id="btn-sidebar" class="icon-btn only-mobile" type="button" aria-label="باز کردن پنل اسناد">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+        </button>
+
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M6 4h9l4 4v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z" /><path d="M8 11h7M8 15h5" /></svg>
+          </span>
+          <div class="brand-text">
+            <h1>چت‌بات دانش سازمانی</h1>
+            <p>پاسخ‌ها فقط بر پایه‌ی اسناد داخلی ساخته می‌شوند</p>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <div id="status-pill" class="status-pill" role="status" title="وضعیت سرویس">
+            <span id="status-dot" class="status-dot is-unknown"></span>
+            <span id="status-text">در حال بررسی…</span>
+          </div>
+          <button id="btn-theme" class="icon-btn" type="button" aria-label="تغییر حالت روشن و تاریک">
+            <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.8 6.8 0 0 0 9.8 9.8Z" /></svg>
+            <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19" /></svg>
+          </button>
+          <button id="btn-settings" class="icon-btn" type="button" aria-label="تنظیمات" aria-expanded="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2 2 2 0 1 1-4 0 1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3 15a2 2 0 1 1 0-4 1.7 1.7 0 0 0 1.4-2.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 10 4a2 2 0 1 1 4 0 1.7 1.7 0 0 0 2.9 1.4l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A1.7 1.7 0 0 0 21 11a2 2 0 1 1 0 4Z" /></svg>
+          </button>
+        </div>
+      </header>
+
+      <div id="settings-panel" class="settings-panel hidden" role="dialog" aria-label="تنظیمات">
+        <div class="settings-head">
+          <h2>تنظیمات</h2>
+          <button id="btn-close-settings" class="icon-btn" type="button" aria-label="بستن تنظیمات">×</button>
+        </div>
+
+        <label class="settings-label" for="top-k">تعداد منابع بازیابی‌شده</label>
+        <div class="settings-range">
+          <input id="top-k" type="range" min="1" max="10" step="1" value="5" />
+          <output id="top-k-value">۵</output>
+        </div>
+
+        <button id="btn-clear-chat" class="btn-ghost" type="button">پاک کردن تاریخچه‌ی گفتگو</button>
+
+        <div class="settings-section">
+          <h3>وضعیت تنظیمات</h3>
+          <ul id="settings-diagnostics" class="diagnostics"></ul>
+        </div>
+      </div>
+
+      <div class="app-body">
+        <aside id="sidebar" class="sidebar" aria-label="مدیریت اسناد">
+          <div class="sidebar-head">
+            <h2>اسناد دانش</h2>
+            <button id="btn-close-sidebar" class="icon-btn only-mobile" type="button" aria-label="بستن پنل اسناد">×</button>
+          </div>
+
+          <div id="dropzone" class="dropzone" role="button" tabindex="0" aria-label="آپلود سند جدید">
+            <svg class="dropzone-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5" /><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" /></svg>
+            <p class="dropzone-title">فایل را اینجا رها کنید</p>
+            <p class="dropzone-hint">PDF، DOCX، TXT یا Markdown — حداکثر ۲۵ مگابایت</p>
+            <button id="btn-pick-files" class="btn-primary" type="button">انتخاب فایل</button>
+            <input id="file-input" class="hidden" type="file" multiple accept=".pdf,.docx,.txt,.md,.markdown" />
+          </div>
+
+          <div id="upload-progress" class="upload-progress hidden">
+            <div class="upload-progress-head">
+              <span id="upload-status">در حال آپلود…</span>
+              <span id="upload-percent">۰٪</span>
+            </div>
+            <div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div>
+          </div>
+
+          <ul id="upload-results" class="upload-results"></ul>
+
+          <div class="doc-toolbar">
+            <input id="doc-search" class="input" type="search" placeholder="جست‌وجو در اسناد…" aria-label="جست‌وجو در اسناد" />
+            <span id="doc-count" class="badge">۰</span>
+          </div>
+
+          <ul id="doc-list" class="doc-list"></ul>
+          <p id="doc-empty" class="doc-empty">هنوز سندی ایندکس نشده است.</p>
+        </aside>
+        <div id="sidebar-backdrop" class="sidebar-backdrop hidden"></div>
+
+        <main class="chat-main">
+          <div id="messages" class="messages" aria-live="polite">
+            <div id="empty-state" class="empty-state">
+              <span class="empty-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H7l-4 3v-6.5A8 8 0 0 1 11 4h2a8 8 0 0 1 8 8Z" /><path d="M9 11h6M9 15h4" /></svg>
+              </span>
+              <h2>از دانش سازمان بپرسید</h2>
+              <p id="empty-hint">پاسخ‌ها همراه با منبع (نام سند و شماره صفحه) نمایش داده می‌شوند.</p>
+              <div id="suggestions" class="suggestions"></div>
+            </div>
+          </div>
+
+          <div class="composer-wrap">
+            <form id="composer" class="composer">
+              <textarea
+                id="message-input"
+                rows="1"
+                placeholder="سؤال خود را بنویسید…"
+                aria-label="متن سؤال"
+                autocomplete="off"
+              ></textarea>
+              <button id="btn-stop" class="btn-stop hidden" type="button">توقف</button>
+              <button id="btn-send" class="btn-send" type="submit" aria-label="ارسال سؤال">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4 9 15" /><path d="M20 4 14 20l-5-5-5-5Z" /></svg>
+              </button>
+            </form>
+            <p class="composer-hint">
+              <kbd>Enter</kbd> برای ارسال، <kbd>Shift</kbd> + <kbd>Enter</kbd> برای خط جدید.
+            </p>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script type="module" src="/js/chat.js"></script>
+    <script type="module" src="/js/upload.js"></script>
+  </body>
+</html>

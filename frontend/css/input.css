@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+/* دارک‌مود با کلاس .dark روی <html> */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@source "../index.html";
+@source "../js/*.js";

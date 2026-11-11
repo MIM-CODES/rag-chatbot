@@ -1,0 +1,14 @@
+{
+  "name": "rag-chatbot-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "استایل‌های Tailwind برای رابط چت‌بات RAG",
+  "scripts": {
+    "build:css": "tailwindcss -i ./css/input.css -o ./css/tailwind.css --minify",
+    "watch:css": "tailwindcss -i ./css/input.css -o ./css/tailwind.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.0",
+    "tailwindcss": "^4.1.0"
+  }
+}

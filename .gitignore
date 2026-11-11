@@ -1,0 +1,29 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+*.egg-info/
+.venv-install.log
+
+# --- پیکربندی و داده‌ها ---
+backend/.env
+backend/data/chroma_db/
+backend/data/raw_documents/*
+!backend/data/raw_documents/.gitkeep
+backend/data/doc_registry.json
+backend/data/*.tmp
+
+# --- Node / Tailwind ---
+node_modules/
+
+# --- ابزارها و فایل‌های موقت ---
+.freebuff/
+.cloud-attachments/
+*.log
+
+# --- سیستم و ادیتور ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
