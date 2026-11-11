@@ -4,6 +4,11 @@ A chatbot that lets employees ask questions in natural language about internal o
 
 The RAG pipeline is implemented **manually, without any framework** (no LangChain/LlamaIndex): chunking, embedding, retrieval, and prompt building are all done in plain Python with basic libraries.
 
+## Video Tutorials
+
+- RAG theory: [How to Build an AI Chatbot with Your Own Data?](https://youtu.be/TVSKG8c10f4) (Persian)
+- Project implementation steps: [Hands-On RAG Project with FastAPI and Ollama | Without LangChain](https://youtu.be/URA2CMZims8) (Persian)
+
 ## Tech Stack
 
 | Layer | Technology |
