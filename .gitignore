@@ -1,29 +1,106 @@
-# --- Python ---
+# =====================================================================
+#  .gitignore — چت‌بات سازمانی RAG (FastAPI + ChromaDB + فرانت Tailwind)
+#  قاعده: خروجی‌های تولیدشده، داده‌ها و اسرار هرگز کامیت نمی‌شوند.
+#  استثناها: backend/.env.example، backend/data/raw_documents/.gitkeep و
+#  frontend/css/tailwind.css (بیلدشده، عمداً کامیت می‌شود تا اجرا بدون npm کار کند).
+# =====================================================================
+
+# ----------------------------- اسرار و پیکربندی -----------------------------
+# فایل‌های env محلی؛ نمونه‌ها (.env.example/.sample/.template) نگه داشته می‌شوند.
+backend/.env
+.env
+.env.*
+!.env.example
+!backend/.env.example
+!backend/.env.sample
+!backend/.env.template
+*.pem
+*.key
+secrets/
+!secrets/.gitkeep
+
+# ----------------------------- پایتون / بک‌اند -----------------------------
 __pycache__/
 *.py[cod]
-.venv/
-.pytest_cache/
+*$py.class
+*.so
+.Python
+build/
+dist/
+sdist/
+wheels/
+*.egg
 *.egg-info/
+.eggs/
+
+# محیط مجازی
+.venv/
+venv/
+env/
+ENV/
 .venv-install.log
 
-# --- پیکربندی و داده‌ها ---
-backend/.env
+# ابزارهای تست و کیفیت کد
+.pytest_cache/
+.cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.dmypy.json
+.ruff_cache/
+.hypothesis/
+
+# ----------------------------- داده‌های پروژه -----------------------------
+# پایگاه‌برداری و مانیفست اسناد؛ با هر نصب/ایندکس بازسازی می‌شوند.
 backend/data/chroma_db/
-backend/data/raw_documents/*
-!backend/data/raw_documents/.gitkeep
+backend/data/chroma.sqlite3
+chroma.sqlite3
 backend/data/doc_registry.json
 backend/data/*.tmp
+backend/data/*.bak
+backend/data/.tmp/
 
-# --- Node / Tailwind ---
+# اسناد آپلودشده‌ی کاربران (فقط نگه‌دارنده‌ی پوشه کامیت می‌شود).
+backend/data/raw_documents/*
+!backend/data/raw_documents/.gitkeep
+
+# ----------------------------- Node / فرانت‌اند -----------------------------
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+.npm/
 
-# --- ابزارها و فایل‌های موقت ---
+# ----------------------------- لاگ‌ها و فایل‌های موقت -----------------------------
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+*.swp
+*.swo
+*~
+
+# ----------------------------- ابزارها -----------------------------
+# پوشه‌های ابزار محیط توسعه؛ نباید در ریپو بیایند.
 .freebuff/
 .cloud-attachments/
-*.log
 
-# --- سیستم و ادیتور ---
+# ----------------------------- سیستم‌عامل و ادیتور -----------------------------
 .DS_Store
+.AppleDouble
+.LSOverride
+._*
 Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
 .idea/
 .vscode/
+*.code-workspace
