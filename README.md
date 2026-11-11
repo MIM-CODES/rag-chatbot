@@ -1,141 +1,141 @@
-# چت‌بات سازمانی مبتنی بر RAG
+# RAG-Based Enterprise Chatbot
 
-چت‌باتی که به کارکنان اجازه می‌دهد با زبان طبیعی از مستندات داخلی سازمان (سیاست‌ها، آیین‌نامه‌ها، مستندات فنی و…) سؤال بپرسند و **پاسخ مستند، همراه با منبع** بگیرند.
+A chatbot that lets employees ask questions in natural language about internal organizational documents (policies, regulations, technical docs, etc.) and get **grounded answers with sources**.
 
-خط‌لوله‌ی RAG به‌صورت **دستی و بدون فریمورک** (بدون LangChain/LlamaIndex) پیاده‌سازی شده است: chunking، embedding، retrieval و ساخت prompt همه با کد پایتون ساده و کتابخانه‌های پایه انجام می‌شوند.
+The RAG pipeline is implemented **manually, without any framework** (no LangChain/LlamaIndex): chunking, embedding, retrieval, and prompt building are all done in plain Python with basic libraries.
 
-## پشته فناوری
+## Tech Stack
 
-| لایه | فناوری |
+| Layer | Technology |
 | --- | --- |
-| فرانت‌اند | HTML + CSS + Tailwind (بیلدشده) + Vanilla JS ماژولار، فارسی و RTL |
-| بک‌اند | Python 3.11+، FastAPI، Uvicorn |
-| پایگاه‌داده برداری | ChromaDB (PersistentClient) |
-| Embedding و LLM | API سازگار با OpenAI — پیش‌فرض: Ollama |
-| پیکربندی | `python-dotenv` + Pydantic Settings |
+| Frontend | HTML + CSS + Tailwind (prebuilt) + modular Vanilla JS, Persian and RTL |
+| Backend | Python 3.11+, FastAPI, Uvicorn |
+| Vector database | ChromaDB (PersistentClient) |
+| Embedding and LLM | OpenAI-compatible API — default: Ollama |
+| Configuration | `python-dotenv` + Pydantic Settings |
 
-## پیش‌نیازها
+## Prerequisites
 
-- Python 3.11 یا بالاتر (با 3.13 تست شده است)
-- [Ollama](https://ollama.com) در حال اجرا روی همان ماشین
+- Python 3.11 or higher (tested with 3.13)
+- [Ollama](https://ollama.com) running on the same machine
 
 ```bash
-ollama serve            # اگر به‌صورت سرویس اجرا نشده است
-ollama list             # مدل‌های موجود
+ollama serve            # if it is not already running as a service
+ollama list             # available models
 ```
 
-## راه‌اندازی
+## Setup
 
 ```bash
-# ۱) مدل‌ها را دانلود کنید (نام‌ها را خودتان انتخاب می‌کنید)
-ollama pull qwen2.5:7b-instruct     # مدل چت
-ollama pull bge-m3                  # مدل embedding چندزبانه (مناسب فارسی)
+# 1) Pull the models (you choose the names)
+ollama pull qwen2.5:7b-instruct     # chat model
+ollama pull bge-m3                  # multilingual embedding model (good for Persian)
 
-# ۲) پیکربندی
-cp backend/.env.example backend/.env   # اگر از قبل وجود ندارد
-# LLM_MODEL و EMBEDDING_MODEL را با نام مدل‌های خودتان پر کنید
+# 2) Configuration
+cp backend/.env.example backend/.env   # if it doesn't already exist
+# Fill LLM_MODEL and EMBEDDING_MODEL with your own model names
 
-# ۳) اجرا (محیط مجازی و وابستگی‌ها خودکار نصب می‌شوند)
+# 3) Run (the virtual environment and dependencies are installed automatically)
 bash scripts/run.sh
 ```
 
-سپس در مرورگر باز کنید: <http://127.0.0.1:8000>
+Then open in your browser: <http://127.0.0.1:8000>
 
-مستندات تعاملی API: <http://127.0.0.1:8000/api/docs>
+Interactive API docs: <http://127.0.0.1:8000/api/docs>
 
-### مدل‌های پیشنهادی فارسی
+### Recommended Models for Persian
 
-- **چت:** `qwen2.5:7b-instruct`، `llama3.1:8b` یا هر مدلی که در Ollama دوست دارید
-- **Embedding:** `bge-m3` (چندزبانه و قوی در فارسی)، `nomic-embed-text`، `embeddinggemma`
+- **Chat:** `qwen2.5:7b-instruct`, `llama3.1:8b`, or any model you prefer in Ollama
+- **Embedding:** `bge-m3` (multilingual and strong in Persian), `nomic-embed-text`, `embeddinggemma`
 
-> ⚠️ مدل embedding را بعد از ایندکس‌گذاری تغییر ندهید. اگر تغییر دهید، بردارهای قدیمی و جدید ناسازگار می‌شوند؛ برنامه با خطای ۴۰۹ هشدار می‌دهد و باید اسناد قبلی را حذف و دوباره ایندکس کنید.
+> ⚠️ Do not change the embedding model after indexing. If you do, old and new vectors become incompatible; the app will warn with a 409 error, and you must delete and re-index the previous documents.
 
-### طول context در Ollama
+### Context Length in Ollama
 
-Ollama به‌طور پیش‌فرض context کوچکی (حدود ۲k توکن) در نظر می‌گیرد و ممکن است ابتدای prompt را ببرد. برای پاسخ‌های بهتر:
+By default, Ollama uses a small context window (about 2k tokens) and may truncate the beginning of the prompt. For better answers:
 
 ```bash
 OLLAMA_CONTEXT_LENGTH=8192 ollama serve
 ```
 
-همچنین `CONTEXT_MAX_CHARS` در `.env` (پیش‌فرض ۶۰۰۰) اندازه‌ی متن منابعی را که به مدل داده می‌شود محدود می‌کند.
+Also, `CONTEXT_MAX_CHARS` in `.env` (default 6000) limits the size of the source text passed to the model.
 
-## پیکربندی (`.env`)
+## Configuration (`.env`)
 
-همه‌ی مقادیر حساس یا محیط‌وابسته در `backend/.env` قرار می‌گیرند و در کد هاردکد نمی‌شوند:
+All sensitive or environment-dependent values live in `backend/.env` and are never hardcoded:
 
-| متغیر | توضیح |
+| Variable | Description |
 | --- | --- |
-| `LLM_BASE_URL` / `LLM_MODEL` / `LLM_API_KEY` | سرویس و مدل چت (پیش‌فرض `http://localhost:11434/v1`) |
-| `LLM_TEMPERATURE` / `LLM_MAX_TOKENS` | پارامترهای تولید پاسخ |
-| `EMBEDDING_BASE_URL` / `EMBEDDING_MODEL` | سرویس و مدل embedding |
-| `EMBEDDING_BATCH_SIZE` | تعداد قطعات در هر درخواست embedding |
-| `CHUNK_SIZE` / `CHUNK_OVERLAP` | اندازه‌ی قطعه و هم‌پوشانی (کاراکتر) |
-| `RETRIEVAL_TOP_K` / `SIMILARITY_THRESHOLD` | تعداد منابع و آستانه‌ی شباهت کسینوسی |
-| `CONTEXT_MAX_CHARS` | سقف کاراکتر متن منابع در prompt |
-| `HISTORY_MAX_TURNS` | تعداد نوبت‌های تاریخچه‌ی گفتگو که به مدل می‌رود |
-| `MAX_UPLOAD_MB` | سقف حجم هر فایل |
-| `CHROMA_PERSIST_DIR` / `CHROMA_COLLECTION_NAME` | مسیر ذخیره و نام مجموعه در ChromaDB |
-| `CORS_ALLOWED_ORIGINS` | دامنه‌های مجاز فرانت‌اند |
+| `LLM_BASE_URL` / `LLM_MODEL` / `LLM_API_KEY` | Chat service and model (default `http://localhost:11434/v1`) |
+| `LLM_TEMPERATURE` / `LLM_MAX_TOKENS` | Generation parameters |
+| `EMBEDDING_BASE_URL` / `EMBEDDING_MODEL` | Embedding service and model |
+| `EMBEDDING_BATCH_SIZE` | Number of chunks per embedding request |
+| `CHUNK_SIZE` / `CHUNK_OVERLAP` | Chunk size and overlap (in characters) |
+| `RETRIEVAL_TOP_K` / `SIMILARITY_THRESHOLD` | Number of sources and cosine similarity threshold |
+| `CONTEXT_MAX_CHARS` | Maximum characters of source text in the prompt |
+| `HISTORY_MAX_TURNS` | Number of conversation history turns sent to the model |
+| `MAX_UPLOAD_MB` | Maximum size per file |
+| `CHROMA_PERSIST_DIR` / `CHROMA_COLLECTION_NAME` | Storage path and collection name in ChromaDB |
+| `CORS_ALLOWED_ORIGINS` | Allowed frontend origins |
 
-تنظیمات در لحظه‌ی start-up اعتبارسنجی می‌شوند (مثلاً `CHUNK_OVERLAP < CHUNK_SIZE`) تا خطا در وسط اجرا ظاهر نشود.
+Settings are validated at start-up (e.g. `CHUNK_OVERLAP < CHUNK_SIZE`) so errors surface immediately rather than mid-run.
 
 ## API
 
-| Method | مسیر | کاربرد |
+| Method | Path | Purpose |
 | --- | --- | --- |
-| `POST` | `/api/ingest` | آپلود چند فایل (multipart، فیلد `files`) و ایندکس‌گذاری |
-| `GET` | `/api/documents` | فهرست اسناد ایندکس‌شده |
-| `DELETE` | `/api/documents/{doc_id}` | حذف سند و همه‌ی قطعه‌های آن |
-| `POST` | `/api/chat` | پرسش و دریافت پاسخ کامل (JSON) |
-| `POST` | `/api/chat/stream` | پرسش و دریافت پاسخ جریانی (SSE) |
-| `GET` | `/api/health` | سلامت سرویس، ChromaDB، مدل‌ها و تنظیمات ناقص |
+| `POST` | `/api/ingest` | Upload multiple files (multipart, `files` field) and index them |
+| `GET` | `/api/documents` | List indexed documents |
+| `DELETE` | `/api/documents/{doc_id}` | Delete a document and all its chunks |
+| `POST` | `/api/chat` | Ask a question and receive the full answer (JSON) |
+| `POST` | `/api/chat/stream` | Ask a question and receive a streamed answer (SSE) |
+| `GET` | `/api/health` | Health of the service, ChromaDB, models, and incomplete settings |
 
-نمونه:
+Example:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/chat \
   -H "Content-Type: application/json" \
-  -d '{"message":"سیاست مرخصی استعلاجی چیست؟"}'
+  -d '{"message":"What is the sick leave policy?"}'
 ```
 
-جریان SSE:
+SSE stream:
 
 ```
 event: open      data: {"conversation_id":"..."}
 event: sources   data: {"sources":[{"filename":"...","page":3,"score":0.72,...}]}
-event: token     data: {"delta":"بر اساس "}
+event: token     data: {"delta":"Based on "}
 event: done      data: {"conversation_id":"...","stopped":false}
 event: error     data: {"message":"...","status_code":503}
 ```
 
-## معماری
+## Architecture
 
 ```
-مرورگر (Vanilla JS)
+Browser (Vanilla JS)
    │  POST /api/chat/stream (SSE)
    ▼
 FastAPI ──► retriever ──► embedder ──► Ollama /v1/embeddings
    │            │
-   │            └──► ChromaDB (collection.query + آستانه شباهت)
+   │            └──► ChromaDB (collection.query + similarity threshold)
    ▼
-prompt_builder (system prompt + منابع شماره‌دار + تاریخچه + سؤال)
+prompt_builder (system prompt + numbered sources + history + question)
    │
-   └──► Ollama /v1/chat/completions (stream) ──► پاسخ + منابع
+   └──► Ollama /v1/chat/completions (stream) ──► answer + sources
 ```
 
-خط‌لوله‌ی ایندکس‌گذاری: `document_loader` (PDF صفحه‌به‌صفحه، DOCX، TXT/MD با تشخیص انکودینگ) → `chunking` (پنجره‌ی لغزان روی مرز جمله با نقطه‌گذاری فارسی) → `embeddings` (batch + retry) → `ChromaDB` + `doc_registry.json`.
+Indexing pipeline: `document_loader` (PDF page by page, DOCX, TXT/MD with encoding detection) → `chunking` (sliding window on sentence boundaries with Persian punctuation) → `embeddings` (batch + retry) → `ChromaDB` + `doc_registry.json`.
 
 ```
 backend/
 ├── app/
-│   ├── main.py            # FastAPI، CORS، سرو کردن فرانت‌اند
-│   ├── config.py          # Pydantic Settings + اعتبارسنجی
-│   ├── runtime.py         # ساخت اجزای مشترک
+│   ├── main.py            # FastAPI, CORS, serving the frontend
+│   ├── config.py          # Pydantic Settings + validation
+│   ├── runtime.py         # Builds shared components
 │   ├── api/               # routes_chat, routes_ingest, routes_health
 │   ├── rag/               # chunking, embeddings, vector_store, retriever, prompt_builder
-│   ├── llm/client.py      # کلاینت OpenAI-compatible با streaming
-│   ├── models/schemas.py  # مدل‌های Pydantic
+│   ├── llm/client.py      # OpenAI-compatible client with streaming
+│   ├── models/schemas.py  # Pydantic models
 │   ├── services/          # document_loader, registry
 │   └── data/              # raw_documents, chroma_db, doc_registry.json
 ├── tests/                 # pytest
@@ -149,39 +149,39 @@ scripts/
 └── sample/leave-policy.txt
 ```
 
-## تست
+## Testing
 
 ```bash
 cd backend
 .venv/bin/python -m pytest
 ```
 
-تست‌ها با embedding و مدل تقلبی اجرا می‌شوند و به شبکه/Ollama وابسته نیستند: chunking، prompt building، آستانه‌ی retrieval و جریان کامل ingest → chat → stream → delete.
+Tests run with a fake embedding and model and do not depend on the network or Ollama: chunking, prompt building, the retrieval threshold, and the full ingest → chat → stream → delete flow.
 
-## تولید مجدد CSS (Tailwind)
+## Rebuilding CSS (Tailwind)
 
 ```bash
 cd frontend
-npm install          # فقط بار اول
-npm run build:css    # یا npm run watch:css در زمان توسعه
+npm install          # first time only
+npm run build:css    # or npm run watch:css during development
 ```
 
-`tailwind.css` از قبل ساخته و در پروژه ذخیره شده است؛ در زمان اجرا به CDN وابسته نیست.
+`tailwind.css` is prebuilt and committed to the project; there is no runtime dependency on a CDN.
 
-## محدودیت‌های شناخته‌شده
+## Known Limitations
 
-- **بدون احراز هویت/لاگین** (طبق تصمیم پروژه). اگر سرویس را روی شبکه باز می‌گذارید، آن را پشت reverse proxy با احراز هویت قرار دهید.
-- **بدون OCR:** PDFهای اسکن‌شده متنی برای ایندکس ندارند و برنامه با هشدار صریح آن را گزارش می‌کند.
-- **بدون rate limiting** و بدون لاگ ساخت‌یافته‌ی پرسش‌ها (می‌توان بعداً اضافه کرد).
-- استخراج متن PDF فارسی به کیفیت فایل بستگی دارد؛ در صورت به‌هم‌ریختگی متن، نسخه‌ی DOCX/TXT را ایندکس کنید.
-- یک collection مشترک برای همه‌ی اسناد؛ برای کنترل دسترسی بر اساس دپارتمان می‌توان فیلتر `where` روی متادیتا اضافه کرد.
+- **No authentication/login** (by project decision). If you expose the service on a network, put it behind a reverse proxy with authentication.
+- **No OCR:** scanned PDFs have no extractable text to index, and the app reports this with an explicit warning.
+- **No rate limiting** and no structured query logging (can be added later).
+- Persian PDF text extraction depends on file quality; if the text comes out garbled, index the DOCX/TXT version instead.
+- A single shared collection for all documents; for department-based access control, a `where` filter on metadata can be added.
 
-## عیب‌یابی
+## Troubleshooting
 
-| نشانه | علت و راه‌حل |
+| Symptom | Cause and fix |
 | --- | --- |
-| «نیازمند تنظیم» در هدر | `LLM_MODEL` یا `EMBEDDING_MODEL` خالی است؛ بخش «وضعیت تنظیمات» را ببینید |
-| خطای ۵۰۳ «اتصال به سرویس مدل» | Ollama اجرا نیست یا `LLM_BASE_URL` اشتباه است |
-| «مدل … پیدا نشد» | `ollama pull <model>` را اجرا کنید |
-| پاسخ‌ها نامرتبط‌اند | `SIMILARITY_THRESHOLD` را کم/زیاد کنید، `CHUNK_SIZE` را تنظیم کنید، مدل embedding فارسی‌پسند بگذارید |
-| «در اسناد موجود پاسخی پیدا نکردم» | منابع بالای آستانه پیدا نشده؛ آستانه را کمی پایین بیاورید |
+| "Needs configuration" in the header | `LLM_MODEL` or `EMBEDDING_MODEL` is empty; check the "configuration status" section |
+| 503 error "connection to model service" | Ollama is not running or `LLM_BASE_URL` is wrong |
+| "Model … not found" | Run `ollama pull <model>` |
+| Answers are irrelevant | Raise/lower `SIMILARITY_THRESHOLD`, tune `CHUNK_SIZE`, use a Persian-friendly embedding model |
+| "I couldn't find an answer in the available documents" | No sources passed the threshold; lower the threshold slightly |
